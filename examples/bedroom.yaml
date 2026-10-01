@@ -1,0 +1,36 @@
+# A bedside tablet: a bedtime view with a Goodnight button, tomorrow's first event, and a dim night clock.
+views:
+  - title: Bedroom
+    path: home
+    panel: true
+    cards:
+      - type: custom:hearth-panel
+        board:
+          - { card: rooms, tall: true }
+          - media
+          - climate
+          - weather
+          - agenda
+          - scenes
+          - good
+        rooms:
+          - { entity: light.bedroom, name: Bedroom, count: false }
+          - { entity: light.bedroom_lamp_left, name: Left lamp }
+          - { entity: light.bedroom_lamp_right, name: Right lamp }
+        rooms_unit: [light on, lights on]
+        agenda_mode: tomorrow
+        calendars:
+          - calendar.family
+        climate:
+          humidity: sensor.bedroom_humidity
+          fan:                      # optional: fan buttons call scenes
+            up: scene.fan_faster
+            down: scene.fan_slower
+            power: scene.fan_toggle
+        goodnight:
+          entity: script.bedtime
+          name: Bedtime
+          detail: Turns off every light in the house. Tap twice.
+        night:
+          mode: dim                 # after sunset the screen shows only a dim clock
+          wake_seconds: 45

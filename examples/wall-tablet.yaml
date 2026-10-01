@@ -1,0 +1,29 @@
+# A landscape wall tablet. Put the card in a dashboard view of type "panel" (one full-screen card).
+# Every entity below is an example: replace each one with your own.
+views:
+  - title: Home
+    path: home
+    panel: true
+    cards:
+      - type: custom:hearth-panel
+        board:
+          - { card: rooms, tall: true }
+          - media
+          - weather
+          - agenda
+          - scenes
+          - door
+        rooms:
+          - { entity: light.living_room, name: Living room }
+          - { entity: light.kitchen, name: Kitchen }
+          - { entity: light.dining_room, name: Dining }
+          - { entity: light.office, name: Office }
+        scenes:
+          - { entity: scene.evening, name: Evening }
+          - { entity: scene.movie, name: Movie }
+          - { entity: script.bedtime, name: Bedtime, confirm: true }   # confirm: needs a second tap
+        calendars:
+          - calendar.family
+        camera: camera.front_door
+        doorbell: event.doorbell_ring
+        motion: event.doorbell_motion

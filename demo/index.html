@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hearth Panel demo</title>
+<style>html,body{margin:0;height:100%;background:#000}hearth-panel{display:block}</style>
+</head>
+<body>
+<!--
+  Runs the card in a plain browser with made-up data, no Home Assistant needed.
+  Serve the repo folder (for example: python3 -m http.server) and open /demo/.
+  Options:  ?night=1  after-dark look   ?cfg=minimal  an unconfigured card
+-->
+<script type="module">
+await import('../hearth-panel.js?' + Date.now());
+const q = new URLSearchParams(location.search);
+const night = q.get('night') === '1';
+const hour = 3600e3, now = Date.now();
+const at = (h, m = 0) => { const d = new Date(); d.setDate(d.getDate() + (h < new Date().getHours() ? 1 : 0)); d.setHours(h, m, 0, 0); return d; };
+
+const S = (id, state, attributes = {}) => [id, { entity_id: id, state, attributes: { friendly_name: id, ...attributes }, last_changed: new Date().toISOString() }];
+const L = (id, name, on = true, extra = {}) => S(id, on ? 'on' : 'off', {
+  friendly_name: name, brightness: on ? 220 : null, supported_color_modes: ['color_temp', 'xy'],
+  min_color_temp_kelvin: 2000, max_color_temp_kelvin: 6500, rgb_color: on ? [255, 190, 110] : null, hs_color: [32, 55], ...extra });
+
+const states = Object.fromEntries([
+  S('sun.sun', night ? 'below_horizon' : 'above_horizon', { next_setting: new Date(now + hour).toISOString(), next_rising: new Date(now + 10 * hour).toISOString() }),
+  L('light.living_room', 'Living Room'), L('light.kitchen', 'Kitchen'), L('light.dining_room', 'Dining Room', false),
+  L('light.office', 'Office', true, { rgb_color: [120, 170, 255], hs_color: [215, 53] }), L('light.bedroom', 'Bedroom', false),
+  L('light.guest_room', 'Guest Room', false), L('light.hallway', 'Hallway'), L('light.patio', 'Patio', false),
+  S('weather.home', 'partlycloudy', { temperature: 72, temperature_unit: '°F', humidity: 58, wind_speed: 9, wind_bearing: 220, wind_speed_unit: 'mph', uv_index: 5, precipitation_unit: 'in', pressure: 29.9, pressure_unit: 'inHg', cloud_coverage: 40, dew_point: 55 }),
+  S('scene.evening', new Date(now - 3 * hour).toISOString()), S('scene.movie', 'unknown'), S('scene.relax', 'unknown'), S('scene.bright', 'unknown'),
+  S('script.bedtime', 'off', { friendly_name: 'Bedtime' }),
+  S('media_player.living_room_speaker', 'playing', { friendly_name: 'Living Room Speaker', media_title: 'Sunday Morning', media_artist: 'The Example Band', volume_level: .3, entity_picture: '' }),
+  S('media_player.living_room_tv', 'playing', { friendly_name: 'Living Room TV', media_title: 'Nature Documentary', app_name: 'Streaming', source_list: ['YouTube', 'Netflix'] }),
+  S('calendar.family', 'off', { friendly_name: 'Family' }),
+  S('event.doorbell_ring', new Date(now - 5 * hour).toISOString()), S('event.doorbell_motion', new Date(now - 40 * 60e3).toISOString()), S('sensor.doorbell_battery', '80'),
+  S('input_text.record_album', 'Example Album'), S('input_text.record_artist', 'The Example Band'), S('input_text.record_cover_url', ''),
+  S('sensor.bedroom_humidity', '42', { unit_of_measurement: '%' }),
+]);
+
+const demo = {
+  board: [{ card: 'rooms', tall: true }, 'media', 'weather', 'vinyl', 'agenda', 'scenes', 'door', 'tv'],
+  rooms: [
+    { entity: 'light.living_room', name: 'Living room' }, { entity: 'light.kitchen', name: 'Kitchen' },
+    { entity: 'light.dining_room', name: 'Dining' }, { entity: 'light.office', name: 'Office' },
+    { entity: 'light.bedroom', name: 'Bedroom' }, { entity: 'light.guest_room', name: 'Guest room' },
+    { entity: 'light.hallway', name: 'Hallway' }, { entity: 'light.patio', name: 'Patio' }
+  ],
+  scenes: [
+    { entity: 'scene.evening', name: 'Evening' }, { entity: 'scene.movie', name: 'Movie' },
+    { entity: 'scene.relax', name: 'Relax' }, { entity: 'scene.bright', name: 'Bright' },
+    { entity: 'script.bedtime', name: 'Bedtime', confirm: true }
+  ],
+  media: ['media_player.living_room_speaker'],
+  calendars: ['calendar.family'],
+  camera: 'camera.front_door', doorbell: 'event.doorbell_ring', motion: 'event.doorbell_motion', doorbell_battery: 'sensor.doorbell_battery',
+  vinyl: { album: 'input_text.record_album', artist: 'input_text.record_artist', cover: 'input_text.record_cover_url' },
+  tv: { name: 'Living Room TV', room: 'Living room', player: 'media_player.living_room_tv', remote: 'remote.living_room_tv', apps: ['YouTube', 'Netflix'] }
+};
+const cfg = q.get('cfg') === 'minimal' ? {} : demo;
+
+const tomorrow = at(9, 30), tEnd = new Date(tomorrow.getTime() + hour);
+for (const s of Object.values(states)) s.attributes.friendly_name ??= s.entity_id;
+const hass = {
+  states, themes: { darkMode: true }, areas: {}, entities: {}, devices: {}, hassUrl: p => p,
+  callService: (d, s, data, t) => { console.log('service', d, s, JSON.stringify(data), JSON.stringify(t)); return Promise.resolve(); },
+  callApi: (m, p) => Promise.resolve(p.startsWith('calendars/') ? [{ summary: 'Team call', start: { dateTime: tomorrow.toISOString() }, end: { dateTime: tEnd.toISOString() } }] : []),
+  connection: { subscribeMessage: (cb, msg) => {
+    const f = [];
+    for (let i = 0; i < 8; i++) f.push(msg.forecast_type === 'daily'
+      ? { datetime: new Date(now + i * 24 * hour).toISOString(), temperature: 75 - i, templow: 60, condition: i > 3 ? 'rainy' : 'partlycloudy', precipitation: i > 3 ? .3 : 0, uv_index: 6 }
+      : { datetime: new Date(now + i * hour).toISOString(), temperature: 72 - i, condition: i > 4 ? 'rainy' : 'partlycloudy', precipitation: i > 4 ? .05 : 0 });
+    cb({ forecast: f });
+    return Promise.resolve(() => {});
+  } }
+};
+const el = document.createElement('hearth-panel');
+document.body.appendChild(el);
+el.setConfig(cfg);
+el.hass = hass;
+window.el = el;
+</script>
+</body>
+</html>
