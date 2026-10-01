@@ -2,7 +2,7 @@
   Hearth Panel — a full-screen wall-tablet card for Home Assistant.
   Use in a panel view:  type: custom:hearth-panel  (every option below can be set in the card's YAML)
 */
-const HEARTH_VERSION = '1.0.0';
+const HEARTH_VERSION = '1.0.1';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Lexend:wght@400;500&display=swap';
 
 const HEARTH_DEFAULTS = {
@@ -360,6 +360,16 @@ input[type="range"] { width: calc(100% - 20px); margin: 0 10px 8px; height: 40px
   .tiles { min-height: 0; }
   .tall { grid-row: span 2; }
   .last-wide { grid-column: span 2; }
+  /* The weather card needs a little less height than other cards here, so its stat tiles and hourly strip are tightened to fit the 208px row */
+  .wx-main { flex: none; }
+  .wx-grid { gap: 4px; }
+  .wx-stat { padding: 4px 8px; }
+  .wx-stat span { font-size: 10px; line-height: 1.25; }
+  .wx-stat b { font-size: 14px; line-height: 1.2; }
+  .wx-hours { padding-top: 6px; }
+  .wx-hour small { font-size: 10px; line-height: 1.2; }
+  .wx-hour b { font-size: 12.5px; line-height: 1.2; }
+  .wx-hour .ico { width: 14px; height: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
