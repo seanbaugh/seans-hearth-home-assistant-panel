@@ -11,10 +11,17 @@
   Runs the card in a plain browser with made-up data, no Home Assistant needed.
   Serve the repo folder (for example: python3 -m http.server) and open /demo/.
   Options:  ?night=1  after-dark look   ?cfg=minimal  an unconfigured card
+  ?palette=ocean (midnight ocean forest ember orchid sand graphite)   ?sky=light|dark   ?open=settings  open the Display sheet
 -->
 <script type="module">
-await import('../hearth-panel.js?' + Date.now());
 const q = new URLSearchParams(location.search);
+// Preset the saved Display choices for this page before the card loads (the card keys them by the first URL segment, here "demo").
+const dash = location.pathname.split('/')[1] || 'default';
+try {
+  if (q.get('palette')) localStorage.setItem('hearth.palette:' + dash, JSON.stringify(q.get('palette')));
+  if (q.get('sky')) localStorage.setItem('hearth.theme:' + dash, JSON.stringify(q.get('sky')));
+} catch {}
+await import('../hearth-panel.js?' + Date.now());
 const night = q.get('night') === '1';
 const hour = 3600e3, now = Date.now();
 const at = (h, m = 0) => { const d = new Date(); d.setDate(d.getDate() + (h < new Date().getHours() ? 1 : 0)); d.setHours(h, m, 0, 0); return d; };
@@ -30,7 +37,7 @@ const states = Object.fromEntries([
   L('light.office', 'Office', true, { rgb_color: [120, 170, 255], hs_color: [215, 53] }), L('light.bedroom', 'Bedroom', false),
   L('light.guest_room', 'Guest Room', false), L('light.hallway', 'Hallway'), L('light.patio', 'Patio', false),
   S('weather.home', 'partlycloudy', { temperature: 72, temperature_unit: '°F', humidity: 58, wind_speed: 9, wind_bearing: 220, wind_speed_unit: 'mph', uv_index: 5, precipitation_unit: 'in', pressure: 29.9, pressure_unit: 'inHg', cloud_coverage: 40, dew_point: 55 }),
-  S('scene.evening', new Date(now - 3 * hour).toISOString()), S('scene.movie', 'unknown'), S('scene.relax', 'unknown'), S('scene.bright', 'unknown'),
+  S('scene.evening', new Date(now - 3 * hour).toISOString(), { friendly_name: 'Evening' }), S('scene.movie', 'unknown', { friendly_name: 'Movie' }), S('scene.relax', 'unknown', { friendly_name: 'Relax' }), S('scene.bright', 'unknown', { friendly_name: 'Bright' }),
   S('script.bedtime', 'off', { friendly_name: 'Bedtime' }),
   S('media_player.living_room_speaker', 'playing', { friendly_name: 'Living Room Speaker', media_title: 'Sunday Morning', media_artist: 'The Example Band', volume_level: .3, entity_picture: '' }),
   S('media_player.living_room_tv', 'playing', { friendly_name: 'Living Room TV', media_title: 'Nature Documentary', app_name: 'Streaming', source_list: ['YouTube', 'Netflix'] }),
@@ -81,6 +88,7 @@ document.body.appendChild(el);
 el.setConfig(cfg);
 el.hass = hass;
 window.el = el;
+if (q.get('open')) setTimeout(() => el._openSheet(q.get('open')), 600);
 </script>
 </body>
 </html>

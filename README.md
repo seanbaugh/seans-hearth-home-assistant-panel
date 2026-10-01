@@ -8,7 +8,16 @@ A full-screen dashboard card for Home Assistant, built for wall-mounted tablets.
 - **Night mode.** Optionally dim the screen to a quiet clock after sunset until someone taps it.
 - **No dependencies.** One JavaScript file. Nothing is sent anywhere except the fonts (see Privacy).
 
-> Screenshots: add yours to `docs/` and link them here.
+![Hearth Panel in the dark theme](docs/dashboard-dark.png)
+
+<p>
+  <img src="docs/dashboard-light.png" alt="The light theme" width="49%">
+  <img src="docs/display-settings.png" alt="The Display sheet: theme, color palette and top bar" width="49%">
+</p>
+
+![Seven color palettes, in dark and light](docs/palettes.jpg)
+
+_Screenshots are the demo page with made-up data._
 
 ## Try it without Home Assistant
 
