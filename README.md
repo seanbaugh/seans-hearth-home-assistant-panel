@@ -1,5 +1,9 @@
 # Hearth Panel
 
+BASED ON THE AMAZING WORK HERE ... just made a few tweaks. Feel free to use but please thank the creator.
+
+https://claude.ai/artifact/5picA98JhWVQYbHHYmwCoo
+
 A full-screen dashboard card for Home Assistant, built for wall-mounted tablets. One screen of large, glanceable cards (lights, music, weather, calendar, scenes, front door) with detail sheets that open on tap. It follows the sun between a light and a dark look, and comes with seven colour palettes.
 
 - **Touch first.** Big targets, second-tap confirmation for risky actions (all lights off, goodnight).
